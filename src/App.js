@@ -1,23 +1,162 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import "./App.css";
+import Square from "./Component/Square";
+import { Patterns } from "./Patterns";
+import WinnerScreen from "./WinnerScreen";
+
+const click = new Audio("./click.mp3");
+const gameWinnerSound = new Audio("./win.wav");
+const restartSound = new Audio("./restart.wav");
+
+const clickPlay = () => {
+  click.play();
+};
+const gameWinner = () => {
+  gameWinnerSound.play();
+};
+const gameRestart = () => {
+  restartSound.play();
+};
 
 function App() {
+  const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
+  const [player, setPlayer] = useState("🟡");
+  const [result, setResult] = useState({ winner: "none", state: "none" });
+  const [wined, setWin] = useState(false);
+
+  useEffect(() => {
+    checkWin();
+    checkIfTie();
+
+    if (player === "❌") {
+      setPlayer("🟡");
+    } else {
+      setPlayer("❌");
+    }
+  }, [board]);
+
+  useEffect(() => {
+    if (result.state !== "none") {
+      setWin(true);
+      gameWinner();
+    }
+  }, [result]);
+
+  const handleClick = (square) => {
+    if (board[square] === "" && !wined) {
+      clickPlay();
+      setBoard(
+        board.map((val, idx) => {
+          if (idx === square && val === "") {
+            return player;
+          }
+          return val;
+        })
+      );
+    }
+  };
+
+  const checkWin = () => {
+    Patterns.forEach((currPattern) => {
+      const firstPlayer = board[currPattern[0]];
+      if (firstPlayer === "") return;
+      let foundWinningPattern = true;
+      currPattern.forEach((idx) => {
+        if (board[idx] !== firstPlayer) {
+          foundWinningPattern = false;
+        }
+      });
+
+      if (foundWinningPattern) {
+        setResult({ winner: player, state: "Won" });
+      }
+    });
+  };
+
+  const restartGame = () => {
+    gameRestart();
+    setBoard(["", "", "", "", "", "", "", "", ""]);
+    setPlayer("🟡");
+    setWin(false);
+    setResult({ winner: "none", state: "none" });
+  };
+
+  const checkIfTie = () => {
+    if (board.every((square) => square !== "") && result.state === "none") {
+      setResult({ winner: "No One", state: "Tie" });
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="board">
+        <h1 className="title">
+          Let's Play <br /> Tic Tac T🟡e
+        </h1>
+        <div className="row">
+          <Square
+            chooseSquare={() => {
+              handleClick(0);
+            }}
+            val={board[0]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(1);
+            }}
+            val={board[1]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(2);
+            }}
+            val={board[2]}
+          />
+        </div>
+        <div className="row">
+          <Square
+            chooseSquare={() => {
+              handleClick(3);
+            }}
+            val={board[3]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(4);
+            }}
+            val={board[4]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(5);
+            }}
+            val={board[5]}
+          />
+        </div>
+        <div className="row">
+          <Square
+            chooseSquare={() => {
+              handleClick(6);
+            }}
+            val={board[6]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(7);
+            }}
+            val={board[7]}
+          />
+          <Square
+            chooseSquare={() => {
+              handleClick(8);
+            }}
+            val={board[8]}
+          />
+        </div>
+      </div>
+      {wined ? (
+        <WinnerScreen restartGame={restartGame} playerWon={result.winner} />
+      ) : null}
     </div>
   );
 }
